@@ -9,12 +9,47 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import it.polito.tdp.yelp.model.ArcoGrafo;
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
 import it.polito.tdp.yelp.model.User;
 
 public class YelpDao {
 	
+	
+	
+	public List<ArcoGrafo> calcolaArchi(String city, Year anno) {
+		String sql="SELECT b1.business_id b1, b2.business_id b2, AVG(r2.stars)- AVG(r1.stars) AS differenza "
+				+ "FROM business b1, business b2, reviews r1, reviews r2 "
+				+ "WHERE b1.business_id=r1.business_id AND "
+				+ "b2.business_id=r2.business_id AND "
+				+ "b1.city=b2.city AND "
+				+ "b1.city=? AND "
+				+ "YEAR(r1.review_date)=YEAR(r2.review_date) AND "
+				+ "YEAR(r1.review_date)=? AND "
+				+ "b1.business_id<>b2.business_id "
+				+ "GROUP BY b1.business_id, b2.business_id "
+				+ "HAVING differenza>0";
+		
+		List<ArcoGrafo> result=new ArrayList<>();
+		
+		Connection conn=DBConnect.getConnection();
+		try {
+			PreparedStatement st=conn.prepareStatement(sql);
+			st.setString(1, city);
+			st.setInt(2, anno.getValue());
+			ResultSet res=st.executeQuery();
+			while(res.next()) {
+				result.add(new ArcoGrafo(res.getString("b1"),
+						res.getString("b2"),
+						res.getDouble("differenza")));
+			}
+			conn.close();
+			return result;
+		}catch(SQLException ex) {
+			throw new RuntimeException("DB Error", ex);
+		}
+	}
 	
 	public List<String> getAllCities(){
 		String sql="SELECT DISTINCT city "
