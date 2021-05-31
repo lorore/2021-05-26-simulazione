@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import it.polito.tdp.yelp.model.Business;
@@ -12,6 +13,33 @@ import it.polito.tdp.yelp.model.Review;
 import it.polito.tdp.yelp.model.User;
 
 public class YelpDao {
+	
+	
+	public List<String> getAllCities(){
+		String sql="SELECT DISTINCT city "
+				+ "FROM business "
+				+ "ORDER BY city";
+		List<String> result=new LinkedList<>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+					String citta=	res.getString("city");
+					result.add(citta);
+						
+			}
+			res.close();
+			st.close();
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			throw new RuntimeException("Error in DB", e);
+		}
+	}
 
 	public List<Business> getAllBusiness(){
 		String sql = "SELECT * FROM Business";
